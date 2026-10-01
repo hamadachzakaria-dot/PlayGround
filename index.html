@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🏃 عدّاء المترو 3D | Subway Runner</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": { "three": "./three.module.js" } }
+</script>
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="c3d"></canvas>
+
+  <!-- boot error (only shows if 3D engine fails) -->
+  <div id="boot-err" class="overlay hidden">
+    <div class="card center">
+      <h2>⚠️ تعذّر تشغيل عالم اللعبة</h2>
+      <p class="muted" id="boot-err-msg">محرك الرسوميات لم يعمل.</p>
+      <button class="big-btn" onclick="location.reload()">🔄 إعادة المحاولة</button>
+    </div>
+  </div>
+  <script>
+    setTimeout(function(){
+      if(!window.__booted){
+        document.getElementById('boot-err').classList.remove('hidden');
+        document.getElementById('boot-err-msg').textContent =
+          'لم يتم تحميل three.module.js المحلي — تأكد من وجود الملف بجانب index.html ثم أعد المحاولة.';
+      }
+    }, 8000);
+  </script>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="pill" id="hud-coins">💰 <b>0</b></div>
+      <div class="pill gems" id="hud-gems">💎 <b>0</b></div>
+      <div class="pill" id="hud-dist">🏁 <b>0م</b></div>
+      <div class="pill rank" id="hud-rank">#1</div>
+    </div>
+    <div class="hud-race-bar"><div id="race-progress"></div><span id="race-label">0 / 1200م</span></div>
+    <div id="bots-panel"></div>
+    <div id="active-fx"></div>
+    <div id="touch-controls">
+      <div class="tc-side">
+        <button id="tc-left" aria-label="يسار">◀</button>
+        <button id="tc-right" aria-label="يمين">▶</button>
+      </div>
+      <div class="tc-side">
+        <button id="tc-up" aria-label="قفز">⬆</button>
+        <button id="tc-down" aria-label="انزلاق">⬇</button>
+      </div>
+    </div>
+    <div id="powers-bar"></div>
+  </div>
+
+  <!-- Main menu -->
+  <div id="menu" class="overlay menu-overlay">
+    <div class="card menu-card">
+      <div class="logo-run">🏃‍♂️💨</div>
+      <h1>عدّاء المترو <span>3D</span></h1>
+      <p class="sub">اهرب من الحارس! اقفز فوق الحواجز، انزلق تحت اللافتات، وراوغ القطارات 🚂</p>
+      <div class="chips">
+        <span>🏃 شخصية تركض</span><span>🌍 عالم حي</span><span>⚡ 5 قدرات</span><span>🎡 عجلة حظ</span>
+      </div>
+      <div class="wallet">
+        <div class="w-item">💰 <b id="m-coins">0</b><small>عملة</small></div>
+        <div class="w-item gem">💎 <b id="m-gems">0</b><small>جوهرة</small></div>
+        <div class="w-item">🏆 <b id="m-points">0</b><small>نقطة</small></div>
+      </div>
+      <div id="daily-banner" class="daily-banner hidden">🎁 جائزتك اليومية جاهزة! <button id="btn-daily-open">استلام</button></div>
+      <button class="big-btn" id="btn-start">🏁 ابدأ الجري</button>
+      <button class="big-btn online" id="btn-online">🌍 سباق أونلاين مباشر</button>
+      <div class="grid2">
+        <button id="btn-wheel">🎡 عجلة الحظ <small id="wheel-timer"></small></button>
+        <button id="btn-board">🏆 الترتيب العالمي</button>
+      </div>
+      <div class="grid3">
+        <button id="btn-shop">🛒 المتجر</button>
+        <button id="btn-outfit">👕 شخصيتي</button>
+        <button id="btn-friends">👥 الأصدقاء</button>
+      </div>
+      <div class="grid2">
+        <button id="btn-ad">📺 إعلان +5💎</button>
+        <button id="btn-how">❓ كيف تلعب</button>
+      </div>
+      <p class="hint">⬅️➡️ تحرك • ⬆️/مسافة قفز • ⬇️ انزلاق • اسحب باللمس 📱 • أرقام 1-5 للقدرات</p>
+    </div>
+  </div>
+
+  <!-- Shop -->
+  <div id="shop" class="overlay hidden">
+    <div class="card">
+      <h2>🛒 المتجر — شحن الجواهر 💎</h2>
+      <div id="iap-list"></div>
+      <h3>⚡ القدرات الخارقة</h3>
+      <div id="power-shop"></div>
+      <button class="back" data-close="shop">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- Outfit -->
+  <div id="outfit" class="overlay hidden">
+    <div class="card center">
+      <h2>👕 تخصيص شخصيتك</h2>
+      <p class="muted">اختر قميص العدّاء — يظهر فورًا في العالم 🌍</p>
+      <div id="outfit-list"></div>
+      <button class="back" data-close="outfit">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- Wheel -->
+  <div id="wheelM" class="overlay hidden">
+    <div class="card center">
+      <h2>🎡 عجلة الحظ</h2>
+      <p id="wheel-info" class="muted"></p>
+      <canvas id="wheel-canvas" width="300" height="300"></canvas>
+      <div id="wheel-result" class="win-line"></div>
+      <button class="big-btn" id="btn-spin">دوّر الآن 🎡</button>
+      <button id="btn-spin-ad">📺 تدوير إضافي بإعلان</button>
+      <button class="back" data-close="wheelM">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- Board -->
+  <div id="board" class="overlay hidden">
+    <div class="card">
+      <h2>🏆 الترتيب العالمي (أسبوعي)</h2>
+      <div id="board-list"></div>
+      <p class="muted">كل سباق يمنحك نقاطًا. الفائزون الأوائل يحصلون على جوائز نهاية الأسبوع 🎁</p>
+      <button class="back" data-close="board">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- Friends -->
+  <div id="friends" class="overlay hidden">
+    <div class="card">
+      <h2>👥 الأصدقاء</h2>
+      <p>كود الدعوة الخاص بك: <b id="my-code" class="code"></b> <button id="btn-copy">نسخ</button></p>
+      <p class="muted">عند دعوة صديق جديد يحصل الطرفان على <b>50 💎</b></p>
+      <div class="row"><input id="friend-code" placeholder="أدخل كود صديق..."><button id="btn-redeem">استبدال</button></div>
+      <div id="friend-msg" class="win-line"></div>
+      <h3>🌍 تحدّ العالم</h3>
+      <p class="muted">نافس لاعبين من العالم (محاكاة ذكية تتأقلم مع مستواك 🤖)</p>
+      <button class="big-btn" id="btn-quick-online">⚔️ سباق ضد لاعبين عشوائيين</button>
+      <button class="back" data-close="friends">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- How -->
+  <div id="how" class="overlay hidden">
+    <div class="card">
+      <h2>❓ كيف تلعب</h2>
+      <ul class="how-list">
+        <li>⬅️ ➡️ للتنقل بين السكك — أو اسحب يمين/يسار 📱</li>
+        <li>⬆️ / مسافة للقفز فوق الحواجز 🚧 — اسحب للأعلى</li>
+        <li>⬇️ للانزلاق تحت اللافتات 🪧 — اسحب للأسفل</li>
+        <li>🚂 القطارات لا يمكن قفزها — غيّر المسار!</li>
+        <li>💰 اجمع العملات 💎 والجواهر لشراء القدرات والأزياء</li>
+        <li>⚡ أرقام 1-5 أو أزرار القدرات أثناء الجري</li>
+        <li>💥 الاصطدام = إمساك الحارس! شاهد إعلانًا لتكمل 🏃</li>
+        <li>🏁 اجمع أكبر مسافة ونقاط لتصدر الترتيب العالمي</li>
+      </ul>
+      <button class="back" data-close="how">رجوع ◀</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="over" class="overlay hidden">
+    <div class="card center">
+      <h2 id="over-title">🏁 نهاية السباق!</h2>
+      <div id="over-rank" class="big-rank"></div>
+      <div class="wallet">
+        <div class="w-item">💰 +<b id="over-coins">0</b></div>
+        <div class="w-item gem">💎 +<b id="over-gems">0</b></div>
+        <div class="w-item">🏆 +<b id="over-pts">0</b></div>
+      </div>
+      <div id="over-btns">
+        <button class="big-btn hidden" id="btn-revive">📺 شاهد إعلانًا لتهرب وتكمل الجري!</button>
+        <button class="big-btn" id="btn-again">🔁 جري جديد</button>
+        <button class="back" id="btn-menu">القائمة الرئيسية 🏠</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily -->
+  <div id="daily" class="overlay hidden">
+    <div class="card center">
+      <h2>🎁 الجائزة اليومية — يوم <span id="daily-streak">1</span></h2>
+      <div class="daily-gift">💎<b>+25</b> + 💰<b>+500</b></div>
+      <button class="big-btn" id="btn-daily-claim">استلام ✅</button>
+      <button id="btn-daily-x2">📺 مشاهدة إعلان لمضاعفة الجائزة ×2</button>
+      <button class="back" data-close="daily">إغلاق ✖</button>
+    </div>
+  </div>
+
+  <!-- Ad modal -->
+  <div id="ad" class="overlay hidden">
+    <div class="card center ad-card">
+      <p class="muted">📺 إعلان مكافأة (محاكاة)</p>
+      <div class="fake-ad">🏃 SUBWAY RUNNER<br><small>اشحن الجواهر واهرب من الحارس! 💎</small></div>
+      <div class="ad-bar"><div id="ad-fill"></div></div>
+      <p>المكافأة بعد <b id="ad-sec">5</b> ثوانٍ...</p>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

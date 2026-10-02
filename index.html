@@ -14,7 +14,6 @@
 <div id="game-wrap">
   <canvas id="c3d"></canvas>
 
-  <!-- boot error (only shows if 3D engine fails) -->
   <div id="boot-err" class="overlay hidden">
     <div class="card center">
       <h2>⚠️ تعذّر تشغيل عالم اللعبة</h2>
@@ -32,7 +31,7 @@
     }, 8000);
   </script>
 
-  <!-- HUD -->
+  <!-- HUD (touch-only: no arrow buttons, swipe to play) -->
   <div id="hud" class="hidden">
     <div class="hud-top">
       <div class="pill" id="hud-coins">💰 <b>0</b></div>
@@ -43,82 +42,85 @@
     <div class="hud-race-bar"><div id="race-progress"></div><span id="race-label">0 / 1200م</span></div>
     <div id="bots-panel"></div>
     <div id="active-fx"></div>
-    <div id="touch-controls">
-      <div class="tc-side">
-        <button id="tc-left" aria-label="يسار">◀</button>
-        <button id="tc-right" aria-label="يمين">▶</button>
-      </div>
-      <div class="tc-side">
-        <button id="tc-up" aria-label="قفز">⬆</button>
-        <button id="tc-down" aria-label="انزلاق">⬇</button>
-      </div>
-    </div>
+    <div id="swipe-hint">👆 اسحب للتحرك • ⬆️ قفز • ⬇️ انزلاق</div>
     <div id="powers-bar"></div>
   </div>
 
-  <!-- Main menu -->
+  <!-- Main menu : premium hero -->
   <div id="menu" class="overlay menu-overlay">
-    <div class="card menu-card">
+    <div class="card menu-card hero">
+      <div class="season">🔥 الموسم 1 • مدينة المترو الحديثة 🚄</div>
       <div class="logo-run">🏃‍♂️💨</div>
-      <h1>عدّاء المترو <span>3D</span></h1>
-      <p class="sub">اهرب من الحارس! اقفز فوق الحواجز، انزلق تحت اللافتات، وراوغ القطارات 🚂</p>
+      <h1 class="brand">عدّاء المترو <span>3D</span></h1>
+      <p class="sub">اهرب من الشرطي 👮‍♂️ • راوغ القطارات الحديثة 🚄 • اجمع العملات 💰</p>
+      <div class="hero-char" id="hero-char">🏃 شخصيتك: <b id="hero-char-name">كريم</b> <span id="hero-char-look"></span></div>
       <div class="chips">
-        <span>🏃 شخصية تركض</span><span>🌍 عالم حي</span><span>⚡ 5 قدرات</span><span>🎡 عجلة حظ</span>
+        <span>👁️ شخصيات بعيون حقيقية</span><span>👮 شرطي يطاردك</span><span>🚄 قطارات حديثة</span><span>👆 لمس فقط</span>
       </div>
       <div class="wallet">
         <div class="w-item">💰 <b id="m-coins">0</b><small>عملة</small></div>
         <div class="w-item gem">💎 <b id="m-gems">0</b><small>جوهرة</small></div>
         <div class="w-item">🏆 <b id="m-points">0</b><small>نقطة</small></div>
       </div>
+      <div class="stats-row">
+        <span>🏁 أفضل مسافة: <b id="m-best">0</b>م</span>
+        <span>🎮 سباقات: <b id="m-races">0</b></span>
+        <span>🔥 يوم: <b id="m-streak">0</b></span>
+      </div>
       <div id="daily-banner" class="daily-banner hidden">🎁 جائزتك اليومية جاهزة! <button id="btn-daily-open">استلام</button></div>
-      <button class="big-btn" id="btn-start">🏁 ابدأ الجري</button>
-      <button class="big-btn online" id="btn-online">🌍 سباق أونلاين مباشر</button>
+      <button class="big-btn shine" id="btn-start">🏁 ابدأ الجري</button>
+      <button class="big-btn online shine" id="btn-online">🌍 سباق أونلاين مباشر</button>
       <div class="grid2">
-        <button id="btn-wheel">🎡 عجلة الحظ <small id="wheel-timer"></small></button>
-        <button id="btn-board">🏆 الترتيب العالمي</button>
+        <button class="mbtn" id="btn-wheel">🎡 عجلة الحظ <small id="wheel-timer"></small></button>
+        <button class="mbtn" id="btn-board">🏆 الترتيب العالمي</button>
       </div>
       <div class="grid3">
-        <button id="btn-shop">🛒 المتجر</button>
-        <button id="btn-outfit">👕 شخصيتي</button>
-        <button id="btn-friends">👥 الأصدقاء</button>
+        <button class="mbtn" id="btn-shop">🛒 المتجر</button>
+        <button class="mbtn" id="btn-outfit">🧑‍🎤 الشخصيات</button>
+        <button class="mbtn" id="btn-friends">👥 الأصدقاء</button>
       </div>
       <div class="grid2">
-        <button id="btn-ad">📺 إعلان +5💎</button>
-        <button id="btn-how">❓ كيف تلعب</button>
+        <button class="mbtn" id="btn-ad">📺 إعلان +5💎</button>
+        <button class="mbtn" id="btn-how">❓ كيف تلعب</button>
       </div>
-      <p class="hint">⬅️➡️ تحرك • ⬆️/مسافة قفز • ⬇️ انزلاق • اسحب باللمس 📱 • أرقام 1-5 للقدرات</p>
+      <p class="hint">👆 العب باللمس فقط: اسحب يمين/يسار للمسارات • اسحب فوق للقفز • اسحب تحت للانزلاق • المس القدرة لتفعيلها</p>
     </div>
   </div>
 
-  <!-- Shop -->
+  <!-- Unified Shop : gems + powers + 3D characters -->
   <div id="shop" class="overlay hidden">
-    <div class="card">
-      <h2>🛒 المتجر — شحن الجواهر 💎</h2>
-      <div id="iap-list"></div>
-      <h3>⚡ القدرات الخارقة</h3>
-      <div id="power-shop"></div>
+    <div class="card wide">
+      <h2>🛒 المتجر الملكي الشامل 👑</h2>
+      <div class="shop-tabs">
+        <button class="shop-tab active" data-tab="gems">💎 الجواهر</button>
+        <button class="shop-tab" data-tab="powers">⚡ القدرات</button>
+        <button class="shop-tab" data-tab="chars">🧑 الشخصيات 3D</button>
+      </div>
+      <div id="tab-gems"><div id="iap-list"></div></div>
+      <div id="tab-powers" class="hidden"><div id="power-shop"></div></div>
+      <div id="tab-chars" class="hidden">
+        <p class="muted">شخصيات ثلاثية الأبعاد حقيقية 👀 — استعرضها وهي تركض ثم اشترِ والبس! 🏃</p>
+        <div class="preview-pane">
+          <button id="prev-char" aria-label="السابق">◀</button>
+          <canvas id="char-preview" width="220" height="220"></canvas>
+          <button id="next-char" aria-label="التالي">▶</button>
+        </div>
+        <div id="preview-name" class="preview-name"></div>
+        <div id="preview-action"></div>
+        <div id="outfit-list"></div>
+      </div>
       <button class="back" data-close="shop">رجوع ◀</button>
-    </div>
-  </div>
-
-  <!-- Outfit -->
-  <div id="outfit" class="overlay hidden">
-    <div class="card center">
-      <h2>👕 تخصيص شخصيتك</h2>
-      <p class="muted">اختر قميص العدّاء — يظهر فورًا في العالم 🌍</p>
-      <div id="outfit-list"></div>
-      <button class="back" data-close="outfit">رجوع ◀</button>
     </div>
   </div>
 
   <!-- Wheel -->
   <div id="wheelM" class="overlay hidden">
     <div class="card center">
-      <h2>🎡 عجلة الحظ</h2>
+      <h2>🎡 عجلة الحظ الذهبية</h2>
       <p id="wheel-info" class="muted"></p>
-      <canvas id="wheel-canvas" width="300" height="300"></canvas>
+      <div class="wheel-wrap"><canvas id="wheel-canvas" width="300" height="300"></canvas><div class="wheel-pointer">🔻</div></div>
       <div id="wheel-result" class="win-line"></div>
-      <button class="big-btn" id="btn-spin">دوّر الآن 🎡</button>
+      <button class="big-btn shine" id="btn-spin">دوّر الآن 🎡</button>
       <button id="btn-spin-ad">📺 تدوير إضافي بإعلان</button>
       <button class="back" data-close="wheelM">رجوع ◀</button>
     </div>
@@ -143,7 +145,6 @@
       <div class="row"><input id="friend-code" placeholder="أدخل كود صديق..."><button id="btn-redeem">استبدال</button></div>
       <div id="friend-msg" class="win-line"></div>
       <h3>🌍 تحدّ العالم</h3>
-      <p class="muted">نافس لاعبين من العالم (محاكاة ذكية تتأقلم مع مستواك 🤖)</p>
       <button class="big-btn" id="btn-quick-online">⚔️ سباق ضد لاعبين عشوائيين</button>
       <button class="back" data-close="friends">رجوع ◀</button>
     </div>
@@ -152,16 +153,15 @@
   <!-- How -->
   <div id="how" class="overlay hidden">
     <div class="card">
-      <h2>❓ كيف تلعب</h2>
+      <h2>❓ كيف تلعب (لمس فقط 👆)</h2>
       <ul class="how-list">
-        <li>⬅️ ➡️ للتنقل بين السكك — أو اسحب يمين/يسار 📱</li>
-        <li>⬆️ / مسافة للقفز فوق الحواجز 🚧 — اسحب للأعلى</li>
-        <li>⬇️ للانزلاق تحت اللافتات 🪧 — اسحب للأسفل</li>
-        <li>🚂 القطارات لا يمكن قفزها — غيّر المسار!</li>
-        <li>💰 اجمع العملات 💎 والجواهر لشراء القدرات والأزياء</li>
-        <li>⚡ أرقام 1-5 أو أزرار القدرات أثناء الجري</li>
-        <li>💥 الاصطدام = إمساك الحارس! شاهد إعلانًا لتكمل 🏃</li>
-        <li>🏁 اجمع أكبر مسافة ونقاط لتصدر الترتيب العالمي</li>
+        <li>👆 اسحب يمين / يسار للتنقل بين السكك</li>
+        <li>👆 اسحب للأعلى للقفز فوق الحواجز 🚧</li>
+        <li>👆 اسحب للأسفل للانزلاق تحت اللافتات 🪧</li>
+        <li>🚄 القطارات الحديثة لا تُقفز — غيّر المسار!</li>
+        <li>⚡ المس أيقونة القدرة لتفعيلها فورًا</li>
+        <li>💰 اجمع العملات لشراء الشخصيات والقدرات</li>
+        <li>👮 إذا اصطدمت أمسكك الشرطي! شاهد إعلانًا لتهرب</li>
       </ul>
       <button class="back" data-close="how">رجوع ◀</button>
     </div>
@@ -200,7 +200,7 @@
   <div id="ad" class="overlay hidden">
     <div class="card center ad-card">
       <p class="muted">📺 إعلان مكافأة (محاكاة)</p>
-      <div class="fake-ad">🏃 SUBWAY RUNNER<br><small>اشحن الجواهر واهرب من الحارس! 💎</small></div>
+      <div class="fake-ad">🏃 SUBWAY RUNNER<br><small>اشحن الجواهر واهرب من الشرطي! 💎</small></div>
       <div class="ad-bar"><div id="ad-fill"></div></div>
       <p>المكافأة بعد <b id="ad-sec">5</b> ثوانٍ...</p>
     </div>
